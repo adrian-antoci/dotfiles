@@ -3,6 +3,7 @@
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 ZSH_CUSTOM_DIR="$HOME/.oh-my-zsh/custom"
 KITTY_CONFIG_DIR="$HOME/.config/kitty"
+NVIM_CONFIG_DIR="$HOME/.config/nvim"
 
 # Ask for project folder
 printf "Enter the project folder path for Kitty startup: "
@@ -36,3 +37,34 @@ fi
 ln -s "$DOTFILES_DIR/kitty" "$KITTY_CONFIG_DIR"
 echo "Symlinked $DOTFILES_DIR/kitty -> $KITTY_CONFIG_DIR"
 
+# Symlink nvim config
+if [ -L "$NVIM_CONFIG_DIR" ]; then
+    rm "$NVIM_CONFIG_DIR"
+elif [ -d "$NVIM_CONFIG_DIR" ]; then
+    echo "Backing up existing nvim config to ${NVIM_CONFIG_DIR}.bak"
+    mv "$NVIM_CONFIG_DIR" "${NVIM_CONFIG_DIR}.bak"
+fi
+
+ln -s "$DOTFILES_DIR/nvim" "$NVIM_CONFIG_DIR"
+echo "Symlinked $DOTFILES_DIR/nvim -> $NVIM_CONFIG_DIR"
+
+# Install neovim if not already installed
+if ! command -v nvim >/dev/null 2>&1; then
+    echo "Installing neovim..."
+    brew install neovim
+else
+    echo "neovim is already installed."
+fi
+
+# Install fzf and ripgrep for fuzzy finding in nvim
+for pkg in fzf ripgrep; do
+    if ! command -v "$pkg" >/dev/null 2>&1; then
+        echo "Installing $pkg..."
+        brew install "$pkg"
+    else
+        echo "$pkg is already installed."
+    fi
+done
+
+# Install JetBrains Mono Nerd Font
+brew install --cask font-jetbrains-mono-nerd-font
