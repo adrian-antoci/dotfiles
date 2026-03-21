@@ -104,70 +104,37 @@ require("lazy").setup({
     { "bluz71/vim-nightfly-colors", name = "nightfly", lazy = true },
     { "bluz71/vim-moonfly-colors", name = "moonfly", lazy = true },
 
-    -- Autocompletion
+    -- Autocompletion (with cmdline support)
     {
-        "hrsh7th/nvim-cmp",
-        event = "InsertEnter",
-        dependencies = {
-            "hrsh7th/cmp-nvim-lsp",
-            "hrsh7th/cmp-buffer",
-            "hrsh7th/cmp-path",
-            "L3MON4D3/LuaSnip",
-            "saadparwaiz1/cmp_luasnip",
+        "saghen/blink.cmp",
+        version = "*",
+        event = { "InsertEnter", "CmdlineEnter" },
+        dependencies = { "rafamadriz/friendly-snippets" },
+        opts = {
+            keymap = {
+                preset = "default",
+                ["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
+                ["<C-e>"] = { "hide" },
+                ["<CR>"] = { "accept", "fallback" },
+                ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
+                ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
+            },
+            completion = {
+                accept = { auto_brackets = { enabled = true } },
+                menu = { draw = { treesitter = { "lsp" } }, border = "rounded" },
+                documentation = { auto_show = true, auto_show_delay_ms = 200, window = { border = "rounded" } },
+            },
+            signature = { enabled = true },
+            sources = {
+                default = { "lsp", "path", "snippets", "buffer" },
+            },
+            cmdline = {
+                enabled = true,
+                completion = {
+                    menu = { auto_show = true },
+                },
+            },
         },
-        config = function()
-            local cmp = require("cmp")
-            local luasnip = require("luasnip")
-
-            cmp.setup({
-                snippet = {
-                    expand = function(args)
-                        luasnip.lsp_expand(args.body)
-                    end,
-                },
-                window = {
-                    completion = {
-                        border = "rounded",
-                        winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,CursorLine:PmenuSel",
-                    },
-                    documentation = {
-                        border = "rounded",
-                        winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
-                    },
-                },
-                mapping = cmp.mapping.preset.insert({
-                    ["<C-n>"] = cmp.mapping.select_next_item(),
-                    ["<C-p>"] = cmp.mapping.select_prev_item(),
-                    ["<C-Space>"] = cmp.mapping.complete(),
-                    ["<CR>"] = cmp.mapping.confirm({ select = true }),
-                    ["<Tab>"] = cmp.mapping(function(fallback)
-                        if cmp.visible() then
-                            cmp.select_next_item()
-                        elseif luasnip.expand_or_jumpable() then
-                            luasnip.expand_or_jump()
-                        else
-                            fallback()
-                        end
-                    end, { "i", "s" }),
-                    ["<S-Tab>"] = cmp.mapping(function(fallback)
-                        if cmp.visible() then
-                            cmp.select_prev_item()
-                        elseif luasnip.jumpable(-1) then
-                            luasnip.jump(-1)
-                        else
-                            fallback()
-                        end
-                    end, { "i", "s" }),
-                }),
-                sources = cmp.config.sources({
-                    { name = "nvim_lsp" },
-                    { name = "luasnip" },
-                }, {
-                    { name = "buffer" },
-                    { name = "path" },
-                }),
-            })
-        end,
     },
 
     -- Indent guide lines (widget nesting like Android Studio)
@@ -180,6 +147,17 @@ require("lazy").setup({
                 scope = { enabled = true, show_start = false, show_end = false },
             })
         end,
+    },
+
+    -- Augment Code: AI completions and chat
+    {
+        "augmentcode/augment.vim",
+        lazy = false,
+        keys = {
+            { "<leader>ac", ":Augment chat<CR>", mode = { "n", "v" }, desc = "Augment Chat" },
+            { "<leader>an", ":Augment chat-new<CR>", desc = "Augment New Chat" },
+            { "<leader>at", ":Augment chat-toggle<CR>", desc = "Augment Toggle Chat" },
+        },
     },
 
     -- Tree-sitter: fast, accurate syntax highlighting
@@ -339,6 +317,31 @@ require("lazy").setup({
         end,
     },
 
+    -- Noice: command line popup + notifications
+    {
+        "folke/noice.nvim",
+        event = "VeryLazy",
+        dependencies = { "MunifTanjim/nui.nvim" },
+        config = function()
+            require("noice").setup({
+                cmdline = {
+                    view = "cmdline_popup",
+                },
+                popupmenu = { enabled = false }, -- Let blink.cmp handle completions
+                lsp = {
+                    override = {
+                        ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+                        ["vim.lsp.util.stylize_markdown"] = true,
+                    },
+                },
+                presets = {
+                    command_palette = true,
+                    long_message_to_split = true,
+                },
+            })
+        end,
+    },
+
     -- Trouble: diagnostics list
     {
         "folke/trouble.nvim",
@@ -390,8 +393,8 @@ vim.lsp.config("dartls", {
     filetypes = { "dart" },
     root_markers = { "pubspec.yaml" },
     capabilities = (function()
-        local ok, cmp_lsp = pcall(require, "cmp_nvim_lsp")
-        if ok then return cmp_lsp.default_capabilities() end
+        local ok, blink = pcall(require, "blink.cmp")
+        if ok then return blink.get_lsp_capabilities() end
         return vim.lsp.protocol.make_client_capabilities()
     end)(),
 })
