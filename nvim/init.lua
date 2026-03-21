@@ -342,6 +342,23 @@ require("lazy").setup({
         end,
     },
 
+    -- Neogit: interactive git UI
+    {
+        "NeogitOrg/neogit",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+            "sindrets/diffview.nvim",
+        },
+        keys = {
+            { "<leader>gg", "<cmd>Neogit<cr>", desc = "Git Status (Neogit)" },
+        },
+        config = function()
+            require("neogit").setup({
+                integrations = { diffview = true },
+            })
+        end,
+    },
+
     -- Trouble: diagnostics list
     {
         "folke/trouble.nvim",
