@@ -38,6 +38,14 @@ vim.api.nvim_create_autocmd("CursorHold", {
 })
 vim.opt.updatetime = 300       -- Show floating diagnostic after 300ms
 
+-- Hover window: syntax highlighting + focusable for scrolling
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+    border = "rounded",
+    focusable = true,
+    max_width = 80,
+    max_height = 30,
+})
+
 
 -- Redo
 vim.keymap.set("n", "U", "<cmd>redo<cr>", { desc = "Redo" })
@@ -158,6 +166,18 @@ require("lazy").setup({
                     { name = "buffer" },
                     { name = "path" },
                 }),
+            })
+        end,
+    },
+
+    -- Indent guide lines (widget nesting like Android Studio)
+    {
+        "lukas-reineke/indent-blankline.nvim",
+        main = "ibl",
+        config = function()
+            require("ibl").setup({
+                indent = { char = "│" },
+                scope = { enabled = true, show_start = false, show_end = false },
             })
         end,
     },
@@ -329,6 +349,7 @@ require("lazy").setup({
         config = function()
             require("trouble").setup({
                 open_no_results = true,
+                auto_fold = true,
             })
         end,
     },
@@ -337,7 +358,7 @@ require("lazy").setup({
     {
         "nvim-lualine/lualine.nvim",
         dependencies = { "nvim-tree/nvim-web-devicons" },
-        event = "VeryLazy",
+        lazy = false,
         config = function()
             require("lualine").setup({
                 options = {
@@ -382,7 +403,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         local opts = { buffer = ev.buf }
         vim.keymap.set("n", "cd", vim.lsp.buf.definition, opts)
         vim.keymap.set("n", "cr", vim.lsp.buf.references, opts)
-        vim.keymap.set("n", "ch", function() vim.lsp.buf.hover({ border = "rounded" }) end, opts)
+        vim.keymap.set("n", "ch", vim.lsp.buf.hover, opts)
         vim.keymap.set("n", "ca", vim.lsp.buf.code_action, opts)
         vim.keymap.set("n", "cn", vim.lsp.buf.rename, opts)
         vim.keymap.set("n", "cf", function() vim.lsp.buf.format({ async = true }) end, opts)
