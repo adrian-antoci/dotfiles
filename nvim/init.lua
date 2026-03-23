@@ -65,18 +65,18 @@ vim.keymap.set("n", "<M-k>", "<C-w>k", { desc = "Go to Upper Window" })
 vim.keymap.set("n", "<M-l>", "<C-w>l", { desc = "Go to Right Window" })
 
 -- ============================================================================
+-- Leader key
+-- ============================================================================
+vim.g.mapleader = " "         -- Set space as the leader key
+vim.g.maplocalleader = " "    -- Set space as the local leader key
+
+-- ============================================================================
 -- Reload config
 -- ============================================================================
 vim.keymap.set("n", "<leader>lr", function()
     vim.cmd("source $MYVIMRC")
     vim.notify("Config reloaded!", vim.log.levels.INFO)
 end, { desc = "Reload init.lua" })
-
--- ============================================================================
--- Leader key
--- ============================================================================
-vim.g.mapleader = " "         -- Set space as the leader key
-vim.g.maplocalleader = " "    -- Set space as the local leader key
 
 -- ============================================================================
 -- Plugins
@@ -228,9 +228,6 @@ require("lazy").setup({
         end,
     },
 
-    -- Dart syntax highlighting
-    { "dart-lang/dart-vim-plugin" },
-
     -- Fuzzy finder (LazyVim style)
     {
         "ibhagwan/fzf-lua",
@@ -359,6 +356,20 @@ require("lazy").setup({
         end,
     },
 
+    -- Which-key: show available keybindings
+    {
+        "folke/which-key.nvim",
+        event = "VeryLazy",
+        config = function()
+            require("which-key").setup({
+                delay = 300,
+                win = {
+                    border = "rounded",
+                },
+            })
+        end,
+    },
+
     -- Trouble: diagnostics list
     {
         "folke/trouble.nvim",
@@ -421,12 +432,12 @@ vim.lsp.enable("dartls")
 vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(ev)
         local opts = { buffer = ev.buf }
-        vim.keymap.set("n", "cd", vim.lsp.buf.definition, opts)
-        vim.keymap.set("n", "cr", vim.lsp.buf.references, opts)
-        vim.keymap.set("n", "ch", vim.lsp.buf.hover, opts)
-        vim.keymap.set("n", "ca", vim.lsp.buf.code_action, opts)
-        vim.keymap.set("n", "cn", vim.lsp.buf.rename, opts)
-        vim.keymap.set("n", "cf", function() vim.lsp.buf.format({ async = true }) end, opts)
+        vim.keymap.set("n", "<leader>cd", vim.lsp.buf.definition, opts)
+        vim.keymap.set("n", "<leader>cr", vim.lsp.buf.references, opts)
+        vim.keymap.set("n", "<leader>ch", vim.lsp.buf.hover, opts)
+        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+        vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, opts)
+        vim.keymap.set("n", "<leader>cf", function() vim.lsp.buf.format({ async = true }) end, opts)
 
         -- Format and save on leaving insert mode
         vim.api.nvim_create_autocmd("InsertLeave", {
@@ -564,7 +575,7 @@ local function pick_and_run(debug_mode)
     end)
 end
 
-vim.keymap.set("n", "<leader>r", function() pick_and_run(false) end, { desc = "Run Flutter" })
+vim.keymap.set("n", "<leader>rr", function() pick_and_run(false) end, { desc = "Run Flutter" })
 vim.keymap.set("n", "<leader>rd", function() pick_and_run(true) end, { desc = "Debug Flutter" })
 vim.keymap.set("n", "<leader>rs", function()
     -- Stop running app (kill terminal or DAP)
