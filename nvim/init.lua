@@ -38,13 +38,6 @@ vim.api.nvim_create_autocmd("CursorHold", {
 })
 vim.opt.updatetime = 300       -- Show floating diagnostic after 300ms
 
--- Hover window: syntax highlighting + focusable for scrolling
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-    border = "rounded",
-    focusable = true,
-    max_width = 80,
-    max_height = 30,
-})
 
 
 -- Redo
@@ -82,27 +75,30 @@ end, { desc = "Reload init.lua" })
 -- Plugins
 -- ============================================================================
 require("lazy").setup({
-    -- Themes
+    -- Theme: VS Code Dark
     {
-        "folke/tokyonight.nvim",
+        "Mofiqul/vscode.nvim",
         priority = 1000,
         config = function()
-            require("tokyonight").setup({ style = "moon" })
-            vim.cmd.colorscheme "tokyonight"
+            require("vscode").setup({ style = "dark" })
+            vim.cmd.colorscheme "vscode"
         end,
     },
-    { "catppuccin/nvim", name = "catppuccin", lazy = true },
-    { "rose-pine/neovim", name = "rose-pine", lazy = true },
-    { "rebelot/kanagawa.nvim", lazy = true },
-    { "EdenEast/nightfox.nvim", lazy = true },
-    { "sainnhe/gruvbox-material", lazy = true },
-    { "sainnhe/everforest", lazy = true },
-    { "navarasu/onedark.nvim", lazy = true },
-    { "marko-cerovac/material.nvim", lazy = true },
-    { "projekt0n/github-nvim-theme", lazy = true },
-    { "Mofiqul/dracula.nvim", lazy = true },
-    { "bluz71/vim-nightfly-colors", name = "nightfly", lazy = true },
-    { "bluz71/vim-moonfly-colors", name = "moonfly", lazy = true },
+
+    -- Icons (replaces nvim-web-devicons)
+    {
+        "echasnovski/mini.icons",
+        lazy = false,
+        config = function()
+            local icons = require("mini.icons")
+            icons.setup({
+                extension = {
+                    dart = { glyph = "󰣖", hl = "MiniIconsBlue" },
+                },
+            })
+            icons.mock_nvim_web_devicons()
+        end,
+    },
 
     -- Autocompletion (with cmdline support)
     {
@@ -153,11 +149,12 @@ require("lazy").setup({
     {
         "augmentcode/augment.vim",
         lazy = false,
-        keys = {
-            { "<leader>ac", ":Augment chat<CR>", mode = { "n", "v" }, desc = "Augment Chat" },
-            { "<leader>an", ":Augment chat-new<CR>", desc = "Augment New Chat" },
-            { "<leader>at", ":Augment chat-toggle<CR>", desc = "Augment Toggle Chat" },
-        },
+    },
+
+    -- Copilot: AI completions
+    {
+        "github/copilot.vim",
+        lazy = false,
     },
 
     -- Tree-sitter: fast, accurate syntax highlighting
@@ -231,7 +228,6 @@ require("lazy").setup({
     -- Fuzzy finder (LazyVim style)
     {
         "ibhagwan/fzf-lua",
-        dependencies = { "nvim-tree/nvim-web-devicons" },
         config = function()
             require("fzf-lua").setup({
                 fzf_colors = true,
@@ -258,7 +254,6 @@ require("lazy").setup({
             { "<leader>sc", "<cmd>FzfLua commands<cr>", desc = "Commands" },
             { "<leader>gc", "<cmd>FzfLua git_commits<cr>", desc = "Git Commits" },
             { "<leader>gs", "<cmd>FzfLua git_status<cr>", desc = "Git Status" },
-            { "<leader>st", "<cmd>FzfLua colorschemes<cr>", desc = "Themes" },
         },
     },
 
@@ -268,7 +263,6 @@ require("lazy").setup({
         branch = "v3.x",
         dependencies = {
             "nvim-lua/plenary.nvim",
-            "nvim-tree/nvim-web-devicons",
             "MunifTanjim/nui.nvim",
         },
         config = function()
@@ -288,30 +282,16 @@ require("lazy").setup({
         end,
     },
 
-    -- Floating popups for code actions, rename, etc.
+    -- Snacks: UI utilities (input, notifications, etc.)
     {
-        "stevearc/dressing.nvim",
-        event = "VeryLazy",
-        config = function()
-            require("dressing").setup({
-                input = {
-                    border = "rounded",
-                    relative = "cursor",
-                },
-                select = {
-                    backend = { "fzf_lua" },
-                    fzf_lua = {
-                        winopts = {
-                            width = 0.5,
-                            height = 0.4,
-                            relative = "cursor",
-                            row = 1,
-                            col = 0,
-                        },
-                    },
-                },
-            })
-        end,
+        "folke/snacks.nvim",
+        priority = 1000,
+        lazy = false,
+        opts = {
+            input = { enabled = true },
+            notifier = { enabled = true },
+            picker = { enabled = true },
+        },
     },
 
     -- Noice: command line popup + notifications
@@ -361,11 +341,26 @@ require("lazy").setup({
         "folke/which-key.nvim",
         event = "VeryLazy",
         config = function()
-            require("which-key").setup({
+            local wk = require("which-key")
+            wk.setup({
                 delay = 300,
                 win = {
                     border = "rounded",
                 },
+            })
+            wk.add({
+                { "<leader>c", group = "Code" },
+                { "<leader>r", group = "Run" },
+                { "<leader>d", group = "Debug" },
+                { "<leader>f", group = "Find" },
+                { "<leader>s", group = "Search" },
+                { "<leader>g", group = "Git" },
+                { "<leader>i", group = "AI" },
+                { "<leader>l", group = "Config" },
+                { "<leader>x", group = "Diagnostics" },
+
+                -- Quick reference
+                { "<leader>?", "<cmd>WhichKey<cr>", desc = "All Keymaps" },
             })
         end,
     },
@@ -373,7 +368,6 @@ require("lazy").setup({
     -- Trouble: diagnostics list
     {
         "folke/trouble.nvim",
-        dependencies = { "nvim-tree/nvim-web-devicons" },
         keys = {
             { "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", desc = "Diagnostics" },
         },
@@ -388,7 +382,6 @@ require("lazy").setup({
     -- Statusline with diagnostic counts
     {
         "nvim-lualine/lualine.nvim",
-        dependencies = { "nvim-tree/nvim-web-devicons" },
         lazy = false,
         config = function()
             require("lualine").setup({
@@ -410,6 +403,17 @@ require("lazy").setup({
 })
 
 -- ============================================================================
+-- AI keymaps (leader+i)
+-- ============================================================================
+vim.keymap.set("n", "<leader>ic", ":Augment chat<CR>", { desc = "Augment Chat" })
+vim.keymap.set("v", "<leader>ic", ":Augment chat<CR>", { desc = "Augment Chat" })
+vim.keymap.set("n", "<leader>in", ":Augment chat-new<CR>", { desc = "Augment New Chat" })
+vim.keymap.set("n", "<leader>it", ":Augment chat-toggle<CR>", { desc = "Augment Toggle Chat" })
+vim.keymap.set("n", "<leader>ip", "<cmd>Copilot panel<cr>", { desc = "Copilot Panel" })
+vim.keymap.set("n", "<leader>ie", "<cmd>Copilot enable<cr>", { desc = "Copilot Enable" })
+vim.keymap.set("n", "<leader>id", "<cmd>Copilot disable<cr>", { desc = "Copilot Disable" })
+
+-- ============================================================================
 -- Dart LSP (native Neovim 0.11)
 -- ============================================================================
 local dart_cmd = "dart"
@@ -420,6 +424,19 @@ vim.lsp.config("dartls", {
     cmd = { dart_cmd, "language-server", "--protocol=lsp" },
     filetypes = { "dart" },
     root_markers = { "pubspec.yaml" },
+    init_options = {
+        closingLabels = true,
+        flutterOutline = true,
+        outline = true,
+        suggestFromUnimportedLibraries = true,
+    },
+    settings = {
+        dart = {
+            completeFunctionCalls = true,
+            showTodos = true,
+            enableSnippets = true,
+        },
+    },
     capabilities = (function()
         local ok, blink = pcall(require, "blink.cmp")
         if ok then return blink.get_lsp_capabilities() end
@@ -434,8 +451,12 @@ vim.api.nvim_create_autocmd("LspAttach", {
         local opts = { buffer = ev.buf }
         vim.keymap.set("n", "<leader>cd", vim.lsp.buf.definition, opts)
         vim.keymap.set("n", "<leader>cr", vim.lsp.buf.references, opts)
-        vim.keymap.set("n", "<leader>ch", vim.lsp.buf.hover, opts)
-        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+        vim.keymap.set("n", "<leader>ch", function()
+            vim.lsp.buf.hover({ border = "rounded", max_width = 80, max_height = 30 })
+        end, opts)
+        vim.keymap.set("n", "<leader>ca", function()
+            vim.lsp.buf.code_action({ border = "rounded" })
+        end, opts)
         vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, opts)
         vim.keymap.set("n", "<leader>cf", function() vim.lsp.buf.format({ async = true }) end, opts)
 
