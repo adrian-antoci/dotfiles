@@ -37,17 +37,6 @@ fi
 ln -s "$DOTFILES_DIR/kitty" "$KITTY_CONFIG_DIR"
 echo "Symlinked $DOTFILES_DIR/kitty -> $KITTY_CONFIG_DIR"
 
-# Symlink nvim config
-if [ -L "$NVIM_CONFIG_DIR" ]; then
-    rm "$NVIM_CONFIG_DIR"
-elif [ -d "$NVIM_CONFIG_DIR" ]; then
-    echo "Backing up existing nvim config to ${NVIM_CONFIG_DIR}.bak"
-    mv "$NVIM_CONFIG_DIR" "${NVIM_CONFIG_DIR}.bak"
-fi
-
-ln -s "$DOTFILES_DIR/nvim" "$NVIM_CONFIG_DIR"
-echo "Symlinked $DOTFILES_DIR/nvim -> $NVIM_CONFIG_DIR"
-
 # Install neovim if not already installed
 if ! command -v nvim >/dev/null 2>&1; then
     echo "Installing neovim..."
@@ -68,3 +57,14 @@ done
 
 # Install JetBrains Mono Nerd Font
 brew install --cask font-jetbrains-mono-nerd-font
+
+# Symlink nvim config
+if [ -L "$NVIM_CONFIG_DIR" ]; then
+    rm "$NVIM_CONFIG_DIR"
+elif [ -d "$NVIM_CONFIG_DIR" ]; then
+    echo "Backing up existing nvim config to ${NVIM_CONFIG_DIR}.bak"
+    mv "$NVIM_CONFIG_DIR" "${NVIM_CONFIG_DIR}.bak"
+fi
+
+ln -s "$DOTFILES_DIR/nvim" "$NVIM_CONFIG_DIR"
+echo "Symlinked $DOTFILES_DIR/nvim -> $NVIM_CONFIG_DIR"
