@@ -87,6 +87,11 @@ return {
       "rcarriga/nvim-dap-ui",
     },
     keys = {
+      { "<leader>rf", function()
+        local flutter = find_flutter()
+        local output = vim.fn.systemlist(flutter .. " devices")
+        vim.ui.select(output, { prompt = "Connected Devices:" }, function() end)
+      end, desc = "Flutter Devices" },
       { "<leader>rr", function() pick_and_run(false) end, desc = "Run Flutter" },
       { "<leader>rd", function() pick_and_run(true) end, desc = "Debug Flutter" },
       { "<leader>rs", function()
