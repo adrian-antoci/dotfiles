@@ -46,7 +46,7 @@ else
 fi
 
 # Install fzf and ripgrep for fuzzy finding in nvim
-for pkg in fzf ripgrep; do
+for pkg in fzf ripgrep lazygit; do
     if ! command -v "$pkg" >/dev/null 2>&1; then
         echo "Installing $pkg..."
         brew install "$pkg"
