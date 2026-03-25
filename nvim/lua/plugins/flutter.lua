@@ -44,6 +44,47 @@ local function build_cmd(cfg)
   return table.concat(parts, " "), cwd
 end
 
+local function get_devices(callback)
+  local flutter = find_flutter()
+  vim.fn.jobstart(flutter .. " devices --machine", {
+    stdout_buffered = true,
+    on_stdout = function(_, data)
+      local json_str = table.concat(data, "")
+      if json_str == "" then
+        callback({})
+        return
+      end
+      local ok, devices = pcall(vim.fn.json_decode, json_str)
+      if ok and type(devices) == "table" then
+        callback(devices)
+      else
+        callback({})
+      end
+    end,
+  })
+end
+
+local function pick_device(callback)
+  get_devices(function(devices)
+    vim.schedule(function()
+      if #devices == 0 then
+        vim.notify("No devices found. Start an emulator first.", vim.log.levels.WARN)
+        return
+      end
+      if #devices == 1 then
+        callback(devices[1].id)
+        return
+      end
+      vim.ui.select(devices, {
+        prompt = "Select device:",
+        format_item = function(d) return d.name .. " (" .. d.id .. ")" end,
+      }, function(device)
+        if device then callback(device.id) end
+      end)
+    end)
+  end)
+end
+
 local function pick_and_run(debug_mode)
   local configs = parse_launch_json()
   if not configs or #configs == 0 then
@@ -57,24 +98,27 @@ local function pick_and_run(debug_mode)
   }, function(cfg)
     if not cfg then return end
 
-    if debug_mode then
-      local cwd = vim.fn.getcwd()
-      if cfg.cwd then cwd = cwd .. "/" .. cfg.cwd end
-      require("dap").run({
-        type = "dart",
-        request = "launch",
-        name = cfg.name,
-        program = cfg.program or "lib/main.dart",
-        cwd = cwd,
-        args = cfg.args or {},
-      })
-    else
-      local cmd, cwd = build_cmd(cfg)
-      vim.cmd("botright 10split | terminal cd " .. vim.fn.shellescape(cwd) .. " && " .. cmd)
-      vim.cmd("setlocal nonumber norelativenumber signcolumn=no")
-      vim.cmd("stopinsert")
-      vim.cmd("wincmd k")
-    end
+    pick_device(function(device_id)
+      if debug_mode then
+        local cwd = vim.fn.getcwd()
+        if cfg.cwd then cwd = cwd .. "/" .. cfg.cwd end
+        require("dap").run({
+          type = "dart",
+          request = "launch",
+          name = cfg.name,
+          program = cfg.program or "lib/main.dart",
+          cwd = cwd,
+          args = vim.list_extend(cfg.args or {}, { "-d", device_id }),
+        })
+      else
+        local cmd, cwd = build_cmd(cfg)
+        cmd = cmd .. " -d " .. device_id
+        vim.cmd("botright 10split | terminal cd " .. vim.fn.shellescape(cwd) .. " && " .. cmd)
+        vim.cmd("setlocal nonumber norelativenumber signcolumn=no")
+        vim.cmd("stopinsert")
+        vim.cmd("wincmd k")
+      end
+    end)
   end)
 end
 
@@ -134,6 +178,22 @@ return {
       dap.listeners.after.event_initialized["dapui"] = function() dapui.open() end
       dap.listeners.before.event_terminated["dapui"] = function() dapui.close() end
       dap.listeners.before.event_exited["dapui"] = function() dapui.close() end
+
+      -- Focus the stopped location when hitting a breakpoint
+      dap.listeners.after.event_stopped["focus"] = function()
+        vim.schedule(function()
+          local session = dap.session()
+          if not session then return end
+          -- Focus the first non-dapui, non-terminal window
+          for _, win in ipairs(vim.api.nvim_list_wins()) do
+            local buf = vim.api.nvim_win_get_buf(win)
+            if vim.bo[buf].buftype == "" then
+              vim.api.nvim_set_current_win(win)
+              break
+            end
+          end
+        end)
+      end
 
       -- Flutter debug adapter
       dap.adapters.dart = {
