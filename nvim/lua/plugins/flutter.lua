@@ -65,6 +65,7 @@ local function get_devices(callback)
 end
 
 local function pick_device(callback)
+  vim.notify("Fetching devices...", vim.log.levels.INFO)
   get_devices(function(devices)
     vim.schedule(function()
       if #devices == 0 then

@@ -31,4 +31,16 @@ return {
       })
     end,
   },
+  -- Claude Code: agentic AI with buffer editing
+  {
+    "coder/claudecode.nvim",
+    lazy = false,
+    config = function()
+      require("claudecode").setup()
+    end,
+    keys = {
+      { "<leader>ai", "<cmd>ClaudeCode<cr>", desc = "Claude Code Toggle" },
+      { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = { "n", "v" }, desc = "Claude Code Send" },
+    },
+  },
 }
