@@ -7,6 +7,13 @@
 -- Or remove existing autocmds by their group name (which is prefixed with `lazyvim_` for the defaults)
 -- e.g. vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
 
+-- Auto-reload buffers when changed externally (e.g. by Claude Code)
+vim.o.autoread = true
+vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI", "BufEnter" }, {
+  pattern = "*",
+  command = "checktime",
+})
+
 -- Auto-save when leaving insert mode
 vim.api.nvim_create_autocmd("InsertLeave", {
   pattern = "*",
