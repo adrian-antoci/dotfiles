@@ -15,4 +15,15 @@ return {
       },
     },
   },
+  {
+    "nvim-mini/mini.icons",
+    opts = {
+      extension = {
+        dart = { glyph = "\u{e615}", hl = "MiniIconsBlue" },
+      },
+      filetype = {
+        dart = { glyph = "\u{e615}", hl = "MiniIconsBlue" },
+      },
+    },
+  },
 }
