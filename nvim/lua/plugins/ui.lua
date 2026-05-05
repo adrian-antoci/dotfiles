@@ -10,8 +10,13 @@ return {
   {
     "folke/snacks.nvim",
     opts = {
-      explorer = {
-        hidden = true,
+      picker = {
+        sources = {
+          explorer = {
+            hidden = true,
+            ignored = true,
+          },
+        },
       },
     },
   },
@@ -24,6 +29,16 @@ return {
       filetype = {
         dart = { glyph = "\u{e615}", hl = "MiniIconsBlue" },
       },
+    },
+  },
+  {
+    "sphamba/smear-cursor.nvim",
+    event = "VeryLazy",
+    opts = {
+      stiffness = 0.8,
+      trailing_stiffness = 0.6,
+      distance_stop_animating = 0.5,
+      hide_target_hack = false,
     },
   },
 }

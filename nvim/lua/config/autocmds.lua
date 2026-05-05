@@ -14,12 +14,11 @@ vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI", "BufEnter" }, {
   command = "checktime",
 })
 
--- Auto-save when leaving insert mode
+-- Auto-save when leaving insert mode (no formatting — that runs on save via conform/LSP)
 vim.api.nvim_create_autocmd("InsertLeave", {
   pattern = "*",
   callback = function()
-    if vim.bo.modified and vim.bo.buftype == "" then
-      vim.lsp.buf.format({ async = false })
+    if vim.bo.modified and vim.bo.buftype == "" and not vim.bo.readonly then
       vim.cmd("silent! write")
     end
   end,

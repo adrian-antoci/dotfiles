@@ -97,7 +97,10 @@ local function pick_and_run(debug_mode)
     prompt = debug_mode and "Debug config:" or "Run config:",
     format_item = function(cfg) return cfg.name end,
   }, function(cfg)
-    if not cfg then return end
+    if not cfg then
+      vim.notify("No config selected", vim.log.levels.WARN)
+      return
+    end
 
     pick_device(function(device_id)
       if debug_mode then
