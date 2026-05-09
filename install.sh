@@ -58,6 +58,32 @@ done
 # Install JetBrains Mono Nerd Font
 brew install --cask font-jetbrains-mono-nerd-font
 
+# Install oh-my-posh if not already installed
+if ! command -v oh-my-posh >/dev/null 2>&1; then
+    echo "Installing oh-my-posh..."
+    brew install jandedobbeleer/oh-my-posh/oh-my-posh
+else
+    echo "oh-my-posh is already installed."
+fi
+
+# Optionally patch ~/.zshrc to initialize oh-my-posh
+OMP_INIT_LINE='eval "$(oh-my-posh init zsh)"'
+if grep -Fxq "$OMP_INIT_LINE" "$HOME/.zshrc" 2>/dev/null; then
+    echo "oh-my-posh init line already present in ~/.zshrc."
+else
+    printf "Patch ~/.zshrc with '%s'? [y/N]: " "$OMP_INIT_LINE"
+    read PATCH_ZSHRC
+    case "$PATCH_ZSHRC" in
+        [yY]|[yY][eE][sS])
+            printf '\n%s\n' "$OMP_INIT_LINE" >> "$HOME/.zshrc"
+            echo "Appended oh-my-posh init to ~/.zshrc."
+            ;;
+        *)
+            echo "Skipped patching ~/.zshrc."
+            ;;
+    esac
+fi
+
 # Symlink nvim config
 if [ -L "$NVIM_CONFIG_DIR" ]; then
     rm "$NVIM_CONFIG_DIR"
