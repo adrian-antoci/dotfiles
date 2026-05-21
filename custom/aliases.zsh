@@ -1,5 +1,8 @@
 export GIT_EDITOR="nvim"
 
+# Suggest from history first, fall back to tab-completion (files, dirs, flags)
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+
 # eza (modern ls with icons + git status)
 alias ls="eza --icons --git"
 alias ll="eza -l --icons --git"
