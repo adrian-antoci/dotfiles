@@ -1,5 +1,14 @@
 export GIT_EDITOR="nvim"
 
+# eza (modern ls with icons + git status)
+alias ls="eza --icons --git"
+alias ll="eza -l --icons --git"
+alias la="eza -la --icons --git"
+alias lt="eza --tree --icons --level=2"
+
+# zoxide (smart cd) — `z foo` jumps to any visited dir matching "foo"
+eval "$(zoxide init zsh)"
+
 alias gaa="git add --all"
 alias gsa="git stash"
 

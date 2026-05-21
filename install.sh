@@ -40,37 +40,41 @@ fi
 ln -s "$DOTFILES_DIR/kitty" "$KITTY_CONFIG_DIR"
 echo "Symlinked $DOTFILES_DIR/kitty -> $KITTY_CONFIG_DIR"
 
-# Install neovim if not already installed
-if ! command -v nvim >/dev/null 2>&1; then
-    echo "Installing neovim..."
-    brew install neovim
-else
-    echo "neovim is already installed."
-fi
-
-# Install fzf and ripgrep for fuzzy finding in nvim
-for pkg in fzf ripgrep lazygit; do
-    if ! command -v "$pkg" >/dev/null 2>&1; then
-        echo "Installing $pkg..."
-        brew install "$pkg"
+# Helpers: install a brew formula if its command isn't on PATH; install a cask if not in `brew list --cask`.
+brew_install_cmd() {
+    cmd="$1"; formula="${2:-$1}"
+    if command -v "$cmd" >/dev/null 2>&1; then
+        echo "$cmd is already installed."
     else
-        echo "$pkg is already installed."
+        echo "Installing $formula..."
+        brew install "$formula"
     fi
-done
+}
 
-# Install JetBrains Mono Nerd Font
-brew install --cask font-jetbrains-mono-nerd-font
+brew_install_cask() {
+    cask="$1"
+    if brew list --cask --versions "$cask" >/dev/null 2>&1; then
+        echo "$cask is already installed."
+    else
+        echo "Installing $cask..."
+        brew install --cask "$cask"
+    fi
+}
 
-# Install oh-my-posh if not already installed
-if ! command -v oh-my-posh >/dev/null 2>&1; then
-    echo "Installing oh-my-posh..."
-    brew install jandedobbeleer/oh-my-posh/oh-my-posh
-else
-    echo "oh-my-posh is already installed."
-fi
+# CLI tools — command-name:formula pairs (use the same name when they match).
+brew_install_cmd nvim neovim
+brew_install_cmd fzf
+brew_install_cmd rg ripgrep
+brew_install_cmd lazygit
+brew_install_cmd zoxide
+brew_install_cmd eza
+brew_install_cmd oh-my-posh jandedobbeleer/oh-my-posh/oh-my-posh
+
+# Fonts
+brew_install_cask font-jetbrains-mono-nerd-font
 
 # Optionally patch ~/.zshrc to initialize oh-my-posh
-OMP_INIT_LINE='eval "$(oh-my-posh init zsh)"'
+OMP_INIT_LINE='eval "$(oh-my-posh init zsh --config ~/dotfiles/ohmyposh/config.omp.json)"'
 if grep -Fxq "$OMP_INIT_LINE" "$HOME/.zshrc" 2>/dev/null; then
     echo "oh-my-posh init line already present in ~/.zshrc."
 else
