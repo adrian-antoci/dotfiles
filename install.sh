@@ -73,6 +73,22 @@ brew_install_cmd oh-my-posh jandedobbeleer/oh-my-posh/oh-my-posh
 # Fonts
 brew_install_cask font-jetbrains-mono-nerd-font
 
+# Ensure zsh-autosuggestions and zsh-syntax-highlighting are enabled in ~/.zshrc.
+# syntax-highlighting must be LAST per its docs.
+ZSHRC="$HOME/.zshrc"
+ZSH_PLUGINS_LINE='plugins=(git zsh-autosuggestions zsh-syntax-highlighting)'
+if [ -f "$ZSHRC" ]; then
+    if grep -Fxq "$ZSH_PLUGINS_LINE" "$ZSHRC"; then
+        echo "zsh plugins line already configured in ~/.zshrc."
+    elif grep -Eq '^plugins=\(' "$ZSHRC"; then
+        # Replace any existing plugins=(...) line with our full version.
+        sed -i.bak "s|^plugins=(.*)|$ZSH_PLUGINS_LINE|" "$ZSHRC" && rm -f "$ZSHRC.bak"
+        echo "Updated plugins line in ~/.zshrc."
+    else
+        echo "No plugins=(...) line found in ~/.zshrc; skipping autocomplete patch."
+    fi
+fi
+
 # Optionally patch ~/.zshrc to initialize oh-my-posh
 OMP_INIT_LINE='eval "$(oh-my-posh init zsh --config ~/dotfiles/ohmyposh/config.omp.json)"'
 if grep -Fxq "$OMP_INIT_LINE" "$HOME/.zshrc" 2>/dev/null; then
