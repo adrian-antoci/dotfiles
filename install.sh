@@ -5,6 +5,9 @@ ZSH_CUSTOM_DIR="$HOME/.oh-my-zsh/custom"
 KITTY_CONFIG_DIR="$HOME/.config/kitty"
 NVIM_CONFIG_DIR="$HOME/.config/nvim"
 
+# Initialize git submodules (themes, plugins)
+git -C "$DOTFILES_DIR" submodule update --init --recursive
+
 # Ask for project folder
 printf "Enter the project folder path for Kitty startup: "
 read PROJECT_DIR
