@@ -1,14 +1,4 @@
 return {
-  -- Augment Code: AI completions and chat
-  {
-    "augmentcode/augment.vim",
-    lazy = false,
-    keys = {
-      { "<leader>ac", ":Augment chat<CR>", mode = { "n", "v" }, desc = "Augment Chat" },
-      { "<leader>an", ":Augment chat-new<CR>", desc = "Augment New Chat" },
-      { "<leader>at", ":Augment chat-toggle<CR>", desc = "Augment Toggle Chat" },
-    },
-  },
   -- GitHub Copilot
   {
     "zbirenbaum/copilot.lua",
@@ -31,16 +21,50 @@ return {
       })
     end,
   },
-  -- Claude Code: agentic AI with buffer editing
+  -- OpenCode: agentic AI assistant
   {
-    "coder/claudecode.nvim",
-    lazy = false,
-    config = function()
-      require("claudecode").setup()
-    end,
-    keys = {
-      { "<leader>ai", "<cmd>ClaudeCode<cr>", desc = "Claude Code Toggle" },
-      { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = { "n", "v" }, desc = "Claude Code Send" },
+    "nickjvandyke/opencode.nvim",
+    version = "*",
+    dependencies = {
+      {
+        "folke/snacks.nvim",
+        optional = true,
+        opts = {
+          input = {},
+          picker = {
+            actions = {
+              opencode_send = function(...) return require("opencode").snacks_picker_send(...) end,
+            },
+            win = {
+              input = {
+                keys = {
+                  ["<a-a>"] = { "opencode_send", mode = { "n", "i" } },
+                },
+              },
+            },
+          },
+        },
+      },
     },
+    cmd = "Opencode",
+    keys = {
+      {
+        "<leader>ao",
+        function() require("opencode").ask("@this: ") end,
+        desc = "OpenCode Ask (selection/buffer)",
+        mode = { "n", "x" },
+      },
+      {
+        "<leader>as",
+        function() require("opencode").select() end,
+        desc = "OpenCode Select (prompts/commands/sessions)",
+      },
+    },
+    config = function()
+      vim.g.opencode_opts = {
+        events = { reload = true },
+      }
+      vim.o.autoread = true
+    end,
   },
 }
