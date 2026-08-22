@@ -1,0 +1,67 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "palette": {
+    "black": "#262B44",
+    "blue": "#4B95E9",
+    "green": "#59C9A5",
+    "orange": "#F07623",
+    "red": "#D81E5B",
+    "white": "#E0DEF4",
+    "yellow": "#F3AE35"
+  },
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+        {
+          "type": "path",
+          "style": "powerline",
+          "powerline_symbol": "\ue0b0",
+          "background": "p:orange",
+          "foreground": "p:black",
+          "template": " \uea83 {{ path .Path .Location }} ",
+          "options": {
+            "style": "folder"
+          }
+        },
+        {
+          "type": "git",
+          "style": "powerline",
+          "powerline_symbol": "\ue0b0",
+          "background": "p:green",
+          "foreground": "p:black",
+          "template": "  {{ .HEAD }}{{ if or .Working.Changed .Staging.Changed }} \uf044{{ end }} ",
+          "options": {
+            "fetch_status": true,
+            "branch_template": "{{ trunc 25 .Branch }}"
+          },
+          "background_templates": [
+            "{{ if or (.Working.Changed) (.Staging.Changed) }}p:yellow{{ end }}",
+            "{{ if and (gt .Ahead 0) (gt .Behind 0) }}p:red{{ end }}",
+            "{{ if gt .Ahead 0 }}#49416D{{ end }}",
+            "{{ if gt .Behind 0 }}#7A306C{{ end }}"
+          ]
+        },
+        {
+          "type": "status",
+          "style": "plain",
+          "foreground": "p:red",
+          "template": "\ue0b0 \u2717 ",
+          "background_templates": [],
+          "options": {
+            "always_enabled": false
+          }
+        },
+        {
+          "type": "text",
+          "style": "plain",
+          "foreground": "p:orange",
+          "template": "{{ if eq .Code 0 }}\ue0b0 {{ end }}"
+        }
+      ]
+    }
+  ],
+  "version": 4,
+  "final_space": true
+}

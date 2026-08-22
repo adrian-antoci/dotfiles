@@ -8,16 +8,6 @@ NVIM_CONFIG_DIR="$HOME/.config/nvim"
 # Initialize git submodules (themes, plugins)
 git -C "$DOTFILES_DIR" submodule update --init --recursive
 
-# Ask for project folder
-printf "Enter the project folder path for Kitty startup: "
-read PROJECT_DIR
-if [ -z "$PROJECT_DIR" ]; then
-    echo "No project folder specified, skipping Kitty startup config."
-else
-    sed "s|__PROJECT_DIR__|$PROJECT_DIR|g" "$DOTFILES_DIR/kitty/startup.conf.template" > "$DOTFILES_DIR/kitty/startup.conf"
-    echo "Set Kitty startup directory to $PROJECT_DIR"
-fi
-
 # Remove existing custom directory or symlink
 if [ -L "$ZSH_CUSTOM_DIR" ]; then
     rm "$ZSH_CUSTOM_DIR"
