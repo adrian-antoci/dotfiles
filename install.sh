@@ -59,6 +59,7 @@ brew_install_cmd lazygit
 brew_install_cmd zoxide
 brew_install_cmd eza
 brew_install_cmd oh-my-posh jandedobbeleer/oh-my-posh/oh-my-posh
+brew_install_cmd magick imagemagick
 
 # Fonts
 brew_install_cask font-jetbrains-mono-nerd-font
