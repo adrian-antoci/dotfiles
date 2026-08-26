@@ -60,6 +60,13 @@ brew_install_cmd zoxide
 brew_install_cmd eza
 brew_install_cmd oh-my-posh jandedobbeleer/oh-my-posh/oh-my-posh
 brew_install_cmd magick imagemagick
+# OpenCode CLI (used by nvim/lua/plugins/opencode.lua). Prefer official install if missing.
+if command -v opencode >/dev/null 2>&1; then
+    echo "opencode is already installed."
+else
+    echo "Installing opencode..."
+    brew install anomalyco/tap/opencode 2>/dev/null || curl -fsSL https://opencode.ai/install | bash
+fi
 
 # Fonts
 brew_install_cask font-jetbrains-mono-nerd-font
