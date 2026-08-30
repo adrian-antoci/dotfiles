@@ -41,9 +41,6 @@ return {
 
       -- Explorer, uncommitted (git status) and files with issues (diagnostics).
       opts.sources = { "filesystem", "git_status", "diagnostics" }
-      opts.window = vim.tbl_deep_extend("force", opts.window or {}, {
-        position = "left",
-      })
       -- Tab bar shown as a winbar at the top of the sidebar window.
       opts.source_selector = {
         winbar = true,
