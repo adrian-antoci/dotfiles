@@ -117,6 +117,10 @@ local function find_launch_root(start)
   return nil
 end
 
+-- Public alias so other runconfig modules can resolve the workspace root the
+-- same way (the directory that owns .vscode/launch.json).
+M.find_root = find_launch_root
+
 ---Parse `<root>/.vscode/launch.json` into a list of flutter.ProjectConfig.
 ---@param root string|nil workspace root; when omitted, searched for upward
 ---  from the current buffer's directory (falling back to nvim's cwd).

@@ -3,9 +3,6 @@ return {
   -- LazyVim's extra rebinds <leader>e / <leader>fe to neo-tree automatically.
   { import = "lazyvim.plugins.extras.editor.neo-tree" },
 
-  -- Disable the old snacks explorer so neo-tree is the only file browser.
-  { "folke/snacks.nvim", opts = { explorer = { enabled = false } } },
-
   {
     "nvim-neo-tree/neo-tree.nvim",
     -- Adds the `diagnostics` source (all files that have LSP diagnostics/issues).
@@ -41,6 +38,9 @@ return {
 
       -- Explorer, uncommitted (git status) and files with issues (diagnostics).
       opts.sources = { "filesystem", "git_status", "diagnostics" }
+      opts.window = vim.tbl_deep_extend("force", opts.window or {}, {
+        position = "left",
+      })
       -- Tab bar shown as a winbar at the top of the sidebar window.
       opts.source_selector = {
         winbar = true,

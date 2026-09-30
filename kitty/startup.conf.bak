@@ -1,0 +1,21 @@
+# Kitty startup session (restored on launch via startup_session)
+
+new_tab nvim
+cd ~/development/obsidian-app
+launch zsh -lic "nvim ."
+
+new_tab MacOS
+cd ~/development/obsidian-app/apps/obsidian_app
+launch zsh -ic "nvim main.gas.lis && echo 'macOS [darwin]' >> .last_startup_message.txt"
+
+new_tab auggie
+cd ~/development/obsidian-app
+launch zsh -ic "auggie; exec zsh"
+
+new_tab opencode
+cd ~/development/obsidian-app/apps/obsidian_app
+launch zsh -ic "opencode; exec zsh"
+
+new_tab terminal
+cd ~/development/obsidian-app/apps/obsidian_app
+launch zsh

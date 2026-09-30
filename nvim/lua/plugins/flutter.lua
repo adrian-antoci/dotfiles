@@ -16,60 +16,76 @@ return {
     dependencies = {
       "nvim-lua/plenary.nvim",
       "stevearc/dressing.nvim",
+      -- Colorize ANSI escape codes that Flutter emits in the dev log, so the
+      -- console shows real colors instead of raw sequences like ^[[38;5;3m.
+      "m00qek/baleia.nvim",
     },
-    opts = {
-      fvm = true,
-      decorations = {
-        statusline = {
-          -- Exposes the active run configuration (selected on :FlutterRun) via
-          -- vim.g.flutter_tools_decorations.project_config, which lualine renders
-          -- in the bottom bar (Android-Studio-style run-config indicator).
-          project_config = true,
-          device = true,
-        },
-      },
-      debugger = {
-        -- Disabled so :FlutterRun / <leader>rr does a plain `flutter run`
-        -- (normal mode). :FlutterDebug / <leader>rd force-runs under DAP
-        -- (force_debug=true overrides this flag), so debugging still works.
-        enabled = false,
-        exception_breakpoints = {},
-        evaluate_to_string_in_debug_views = true,
-      },
-      closing_tags = { enabled = true },
-      text_objects = { enabled = true },
-      dev_log = {
-        enabled = true,
-        notify_errors = false,
-        open_cmd = "15split",
-        focus_on_open = true,
-      },
-      outline = { open_cmd = "30vnew", auto_open = false },
-      lsp = {
-        -- Let the Dart Analysis Server watch the filesystem itself instead of
-        -- delegating to Neovim's client-side watcher. flutter-tools advertises
-        -- didChangeWatchedFiles.dynamicRegistration = true by default, which makes
-        -- dartls stop its own watching and rely on Neovim to report on-disk
-        -- changes. On a large monorepo that watcher misses external edits
-        -- (git, formatters, AI tools), so dartls never re-analyses closed files
-        -- and their diagnostics go stale. Disabling it forces dartls back to its
-        -- robust native watcher.
-        capabilities = {
-          workspace = {
-            didChangeWatchedFiles = { dynamicRegistration = false },
+    config = function()
+      require("flutter-tools").setup({
+        fvm = true,
+        decorations = {
+          statusline = {
+            -- Exposes the active run configuration (selected on :FlutterRun) via
+            -- vim.g.flutter_tools_decorations.project_config, which lualine renders
+            -- in the bottom bar (Android-Studio-style run-config indicator).
+            project_config = true,
+            device = true,
           },
         },
-        settings = {
-          showTodos = true,
-          completeFunctionCalls = true,
-          enableSnippets = true,
-          renameFilesWithClasses = "prompt",
-          updateImportsOnRename = true,
+        debugger = {
+          -- Disabled so :FlutterRun / <leader>rr does a plain `flutter run`
+          -- (normal mode). :FlutterDebug / <leader>rd force-runs under DAP
+          -- (force_debug=true overrides this flag), so debugging still works.
+          enabled = false,
+          exception_breakpoints = {},
+          evaluate_to_string_in_debug_views = true,
         },
-      },
-    },
-    config = function(_, opts)
-      require("flutter-tools").setup(opts)
+        closing_tags = {
+          enabled = true,
+        },
+        text_objects = {
+          enabled = true,
+        },
+        dev_log = {
+          enabled = true,
+          notify_errors = false,
+          -- Open full-width at the very bottom; edgy.nvim (below) then docks this
+          -- into an Android-Studio-style bottom tool panel.
+          open_cmd = "botright 15split",
+          focus_on_open = true,
+        },
+        outline = {
+          open_cmd = "30vnew",
+          auto_open = false,
+        },
+        lsp = {
+          -- Let the Dart Analysis Server watch the filesystem itself instead of
+          -- delegating to Neovim's client-side watcher. flutter-tools advertises
+          -- didChangeWatchedFiles.dynamicRegistration = true by default, which makes
+          -- dartls stop its own watching and rely on Neovim to report on-disk
+          -- changes. On a large Melos monorepo (only `fd` available, no watchman)
+          -- that watcher misses external edits (git, melos format, Claude Code), so
+          -- dartls never re-analyses closed files and their diagnostics go stale.
+          -- Disabling it forces dartls back to its robust native watcher.
+          capabilities = {
+            workspace = {
+              didChangeWatchedFiles = {
+                dynamicRegistration = false,
+              },
+            },
+          },
+          settings = {
+            showTodos = true,
+            completeFunctionCalls = true,
+            enableSnippets = true,
+            renameFilesWithClasses = "prompt",
+            updateImportsOnRename = true,
+          },
+          on_attach = function(_, bufnr)
+            vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
+          end,
+        },
+      })
 
       -- Auto-detect run configurations from the workspace's .vscode/launch.json
       -- (like Android Studio / VS Code) and register them as flutter-tools
@@ -80,12 +96,87 @@ return {
       if #configs > 0 then
         require("flutter-tools").setup_project(configs)
       end
+
+      -- Android-Studio-style run manager: persistent run-config + device
+      -- selectors (top-right toolbar) feeding a single Run/Debug action. Keymaps
+      -- live in the nvim-dap spec below.
+      require("runconfig").setup()
+
+      -- Auto-follow the dev log: keep any window showing __FLUTTER_DEV_LOG__
+      -- pinned to the newest line as Flutter streams output. flutter-tools appends
+      -- via nvim_buf_set_lines (no TextChanged), so we attach to the buffer and
+      -- react to on_lines. Following pauses when you scroll up to read history and
+      -- resumes once the cursor is back near the bottom (tail -f behaviour).
+      vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter" }, {
+        group = vim.api.nvim_create_augroup("FlutterDevLogFollow", { clear = true }),
+        callback = function(args)
+          local buf = args.buf
+          if not vim.api.nvim_buf_get_name(buf):match("__FLUTTER_DEV_LOG__$") then
+            return
+          end
+          if vim.b[buf].flutter_dev_log_follow then
+            return
+          end
+          vim.b[buf].flutter_dev_log_follow = true
+          vim.api.nvim_buf_attach(buf, false, {
+            on_lines = function(_, bufnr)
+              if not vim.api.nvim_buf_is_valid(bufnr) then
+                return true
+              end
+              vim.schedule(function()
+                if not vim.api.nvim_buf_is_valid(bufnr) then
+                  return
+                end
+                local last = vim.api.nvim_buf_line_count(bufnr)
+                local prev = vim.b[bufnr].flutter_dev_log_lastcount or 0
+                for _, win in ipairs(vim.fn.win_findbuf(bufnr)) do
+                  -- Only follow if the cursor was at/near the previous end,
+                  -- i.e. the user hasn't scrolled up to read older output.
+                  if vim.api.nvim_win_get_cursor(win)[1] >= prev - 1 then
+                    vim.api.nvim_win_set_cursor(win, { last, 0 })
+                  end
+                end
+                vim.b[bufnr].flutter_dev_log_lastcount = last
+              end)
+            end,
+          })
+        end,
+      })
     end,
+  },
+
+  -- Dock the Flutter dev-log console as an Android-Studio-style bottom tool
+  -- panel (a proper edgebar) instead of a plain editor split, so opening files
+  -- never disturbs it and it can be collapsed/toggled (<leader>rl, or q / <c-q>
+  -- inside the panel). Only the __FLUTTER_DEV_LOG__ buffer is captured.
+  {
+    "folke/edgy.nvim",
+    event = "VeryLazy",
+    init = function()
+      -- Required for edgebars to collapse fully and to stop the main splits
+      -- jumping when the panel opens.
+      vim.opt.laststatus = 3
+      vim.opt.splitkeep = "screen"
+    end,
+    opts = {
+      animate = { enabled = false },
+      bottom = {
+        {
+          ft = "log",
+          title = "Flutter Dev Log",
+          size = { height = 0.3 },
+          filter = function(buf)
+            return vim.api.nvim_buf_get_name(buf):match("__FLUTTER_DEV_LOG__$") ~= nil
+          end,
+        },
+      },
+    },
   },
 
   -- Keep LazyVim from re-enabling LSP inlay hints on Dart buffers. Without this,
   -- LazyVim's LspAttach hook turns inlay hints back on (overriding flutter-tools'
-  -- on_attach), showing dartls parameter-name hints in the dim "shadow" color.
+  -- on_attach), showing dartls parameter-name hints on nameless/closure params in
+  -- the dim "shadow" (LspInlayHint) color.
   {
     "neovim/nvim-lspconfig",
     opts = function(_, opts)
@@ -103,13 +194,15 @@ return {
       "rcarriga/nvim-dap-ui",
     },
     keys = {
-      -- Flutter run / debug / stop
-      { "<leader>rr", ":FlutterRun<CR>", desc = "Run Flutter" },
-      { "<leader>rd", ":FlutterDebug<CR>", desc = "Debug Flutter" },
-      { "<leader>rs", ":FlutterQuit<CR>", desc = "Stop Flutter" },
-
-      -- Device / emulator selection
-      { "<leader>rf", ":FlutterDevices<CR>", desc = "Flutter Devices" },
+      -- Run manager: pick a run config / device once (Android-Studio-style),
+      -- then Run/Debug uses both. See lua/runconfig.
+      { "<leader>rc", function() require("runconfig").select_config() end, desc = "Select Run Config" },
+      { "<leader>rf", function() require("runconfig").select_device() end, desc = "Select Device" },
+      { "<leader>rr", function() require("runconfig").run() end, desc = "Run Flutter" },
+      { "<leader>rd", function() require("runconfig").debug() end, desc = "Debug Flutter" },
+      { "<leader>rs", function() require("runconfig").stop() end, desc = "Stop Flutter" },
+      { "<leader>rl", function() require("runconfig").toggle_dev_log() end, desc = "Toggle Flutter Log" },
+      { "<leader>rm", function() require("runconfig").mirror_device() end, desc = "Mirror Device (Android/iOS)" },
 
       -- Hot reload / restart
       { "<leader>dr", ":FlutterReload<CR>", desc = "Hot Reload" },

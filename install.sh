@@ -8,6 +8,16 @@ NVIM_CONFIG_DIR="$HOME/.config/nvim"
 # Initialize git submodules (themes, plugins)
 git -C "$DOTFILES_DIR" submodule update --init --recursive
 
+# Ask for project folder
+printf "Enter the project folder path for Kitty startup: "
+read PROJECT_DIR
+if [ -z "$PROJECT_DIR" ]; then
+    echo "No project folder specified, skipping Kitty startup config."
+else
+    sed "s|__PROJECT_DIR__|$PROJECT_DIR|g" "$DOTFILES_DIR/kitty/startup.conf.template" > "$DOTFILES_DIR/kitty/startup.conf"
+    echo "Set Kitty startup directory to $PROJECT_DIR"
+fi
+
 # Remove existing custom directory or symlink
 if [ -L "$ZSH_CUSTOM_DIR" ]; then
     rm "$ZSH_CUSTOM_DIR"
@@ -59,14 +69,6 @@ brew_install_cmd lazygit
 brew_install_cmd zoxide
 brew_install_cmd eza
 brew_install_cmd oh-my-posh jandedobbeleer/oh-my-posh/oh-my-posh
-brew_install_cmd magick imagemagick
-# OpenCode CLI (used by nvim/lua/plugins/opencode.lua). Prefer official install if missing.
-if command -v opencode >/dev/null 2>&1; then
-    echo "opencode is already installed."
-else
-    echo "Installing opencode..."
-    brew install anomalyco/tap/opencode 2>/dev/null || curl -fsSL https://opencode.ai/install | bash
-fi
 
 # Fonts
 brew_install_cask font-jetbrains-mono-nerd-font
