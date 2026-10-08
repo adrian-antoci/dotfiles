@@ -1,0 +1,29 @@
+return {
+  {
+    "folke/which-key.nvim",
+    opts = {
+      spec = {
+        { "<leader>a", group = "OpenCode" },
+        { "<leader>aa", desc = "Ask @this" },
+        { "<leader>ab", desc = "Ask @buffer" },
+        { "<leader>as", desc = "Select (prompts/commands/sessions)" },
+        { "<leader>d", group = "Debug" },
+        { "<leader>db", desc = "Toggle Breakpoint" },
+        { "<leader>dR", desc = "Hot Restart" },
+        { "<leader>dc", desc = "Continue" },
+        { "<leader>dn", desc = "Step Over" },
+        { "<leader>di", desc = "Step Into" },
+        { "<leader>do", desc = "Step Out" },
+        { "<leader>dr", desc = "Hot Reload" },
+        { "<leader>dq", desc = "Stop Debug" },
+        { "<leader>du", desc = "Toggle Debug UI" },
+        { "<leader>r", group = "Run" },
+        { "<leader>rf", desc = "Flutter Devices" },
+        { "<leader>rd", desc = "Debug Flutter" },
+        { "<leader>rr", desc = "Run Flutter" },
+        { "<leader>rs", desc = "Stop Flutter" },
+        { "<leader>rm", desc = "Mirror Device (Android/iOS)" },
+      },
+    },
+  },
+}
